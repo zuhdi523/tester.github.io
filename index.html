@@ -9,15 +9,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
 
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-  
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  <script>
+    // Konfigurasi Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCVdDReacr7cULnqqPxo3kQlg1rg4LIHBs",
       authDomain: "tester-15e74.firebaseapp.com",
@@ -28,14 +21,40 @@
       appId: "1:96751142785:web:06a29ad1dd8c3efb370a80",
       measurementId: "G-XDMTMW2BSL"
     };
-  
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+
+    // Inisialisasi Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Referensi ke Realtime Database untuk relaystatus
+    const database = firebase.database();
+    const relayStatusRef = database.ref('ESP32/relaystatus'); // Pastikan 'relaystatus' sesuai dengan struktur di database
+
+    // Fungsi untuk memperbarui status relay di halaman
+    function updateStatusText(value) {
+      const relayStatusText = document.getElementById('relayStatusText');
+      const relayToggle = document.getElementById('relayToggle');
+      
+      relayToggle.checked = value;  // Ubah posisi toggle
+      relayStatusText.textContent = value ? 'ON' : 'OFF';  // Ubah teks status
+    }
+
+    // Mendapatkan status relay dari Firebase dan memperbarui toggle switch
+    relayStatusRef.on('value', (snapshot) => {
+      const currentStatus = snapshot.val();
+      updateStatusText(currentStatus);  // Perbarui tampilan status relay
+    });
+
+    // Toggle status relay ketika switch diklik
+    document.getElementById('relayToggle').addEventListener('change', () => {
+      relayStatusRef.once('value').then((snapshot) => {
+        const currentStatus = snapshot.val();
+        // Toggle status relay
+        relayStatusRef.set(!currentStatus);  // Mengatur status baru
+      });
+    });
   </script>
 
   <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
   <div class="container">
@@ -47,31 +66,5 @@
     </label>
     <div class="status">Status Relay: <span id="relayStatusText">Loading...</span></div>
   </div>
-
-  <script>
-    // Update the status text and toggle position
-    function updateStatusText(value) {
-      const relayStatusText = document.getElementById('relayStatusText');
-      const relayToggle = document.getElementById('relayToggle');
-      
-      relayToggle.checked = value;  // Update toggle switch position
-      relayStatusText.textContent = value ? 'ON' : 'OFF';  // Update status text
-    }
-
-    // Get current relaystatus from Firebase and update the toggle switch
-    relayStatusRef.on('value', (snapshot) => {
-      const currentStatus = snapshot.val();
-      updateStatusText(currentStatus);
-    });
-
-    // Toggle relaystatus when the switch is clicked
-    document.getElementById('relayToggle').addEventListener('change', () => {
-      relayStatusRef.once('value').then((snapshot) => {
-        const currentStatus = snapshot.val();
-        // Toggle the relaystatus
-        relayStatusRef.set(!currentStatus);
-      });
-    });
-  </script>
 </body>
 </html>
